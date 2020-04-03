@@ -121,7 +121,7 @@ exports.challenge = function(ctx, rs) {
       scheme: 'Digest',
       realm: q(ctx.realm),
       qop: q(ctx.qop),
-      algorithm: ctx.algoritm,
+      algorithm: ctx.algorithm,
       nonce: q(ctx.nonce),
       opaque: q(ctx.opaque)
     }
@@ -136,6 +136,7 @@ exports.authenticateRequest = function(ctx, rq, creds) {
   if(!response) return false;
 
   var cnonce = unq(response.cnonce);
+  var nonce = unq(response.nonce);
   var uri = unq(response.uri);
   var qop = unq(lowercase(response.qop));
 
@@ -144,11 +145,11 @@ exports.authenticateRequest = function(ctx, rq, creds) {
   if(!ctx.ha1) {
     ctx.userhash = creds.hash || calculateUserRealmPasswordHash(creds.user, ctx.realm, creds.password);
     ctx.ha1 = ctx.userhash;
-    if(ctx.algoritm === 'md5-sess')
-      ctx.ha1 = kd(ctx.userhash, ctx.nonce, cnonce);
+    if(ctx.algorithm === 'md5-sess')
+      ctx.ha1 = kd(ctx.userhash, nonce, cnonce);
   }
   
-  var digest = calculateDigest({ha1:ctx.ha1, method:rq.method, nonce:ctx.nonce, nc:numberTo8Hex(ctx.nc), cnonce:cnonce, qop:qop, uri:uri, entity:rq.content});
+  var digest = calculateDigest({ha1:ctx.ha1, method:rq.method, ctx.nonce, nc:numberTo8Hex(ctx.nc), cnonce:cnonce, qop:qop, uri:uri, entity:rq.content});
   if(digest === unq(response.response)) {
     ctx.cnonce = cnonce;
     ctx.uri = uri;
