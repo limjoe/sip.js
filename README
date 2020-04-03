@@ -3,6 +3,8 @@ INTRO
 
 sip.js is a SIP stack for node.js. It implements tranaction and transport layers as described in RFC3261. 
 
+forked repo to match gb28181
+
 INSTALL
 -------
 
