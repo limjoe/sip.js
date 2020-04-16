@@ -149,7 +149,7 @@ exports.authenticateRequest = function(ctx, rq, creds) {
       ctx.ha1 = kd(ctx.userhash, nonce, cnonce);
   }
   
-  var digest = calculateDigest({ha1:ctx.ha1, method:rq.method, ctx.nonce, nc:numberTo8Hex(ctx.nc), cnonce:cnonce, qop:qop, uri:uri, entity:rq.content});
+  var digest = calculateDigest({ha1:ctx.ha1, method:rq.method, nonce: nonce, nc:numberTo8Hex(ctx.nc), cnonce:cnonce, qop:qop, uri:uri, entity:rq.content});
   if(digest === unq(response.response)) {
     ctx.cnonce = cnonce;
     ctx.uri = uri;
