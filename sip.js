@@ -773,6 +773,26 @@ function makeUdpTransport(options, callback) {
       }
 
       callback(msg, {protocol: 'UDP', address: rinfo.address, port: rinfo.port, local: {address: address, port: port}});
+    } else {
+      /**
+       * 针对百度LB的监控检查策略，需要对百度发送的非 SIP UDP协议包进行回复
+       */
+      var _msg = {
+        method: 'PING',
+        uri: 'sip:baidu@heathcheck',
+        version: '2.0',
+        headers: {
+          via: [{
+            version: '2.0',
+            protocol: 'UDP',
+            host: rinfo.address,
+            port: rinfo.port,
+            params: { rport: null, branch: 'z9hG4bK180532598' }
+          }],
+          cseq: { seq: 1, method: 'PING' },
+        }
+      };
+      callback(_msg, {protocol: 'UDP', address: rinfo.address, port: rinfo.port, local: {address: address, port: port}});
     }
   }
 
