@@ -806,6 +806,7 @@ function makeUdpTransport(options, callback) {
     return {
       send: function(m) {
         var s = stringify(m);
+        console.log(`send message: ${m}, to ${remote.port}, ${remote.address}`);
         socket.send(new Buffer.from(s, 'binary'), 0, s.length, remote.port, remote.address);          
       },
       protocol: 'UDP',
