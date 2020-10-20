@@ -770,14 +770,9 @@ function makeUdpTransport(options, callback) {
 
   function onMessage(data, rinfo) {
     const payload = data.toString('binary');
-    console.log(`incoming payload: ${payload}`);
-
     if(payload.trim() === 'ping') {
       var message = new Buffer('pong');
-      console.log('ping....')
-      socket.send(message, 0, message.length, rinfo.port, rinfo.address, function(err, bytes) {
-       console.log(`回写完成  ${message.toString()} -> ${rinfo.address}:${rinfo.port}`);
-      });
+      socket.send(message, 0, message.length, rinfo.port, rinfo.address, function(err, bytes) {});
 	  } else {
       var msg = parseMessage(data);
 
