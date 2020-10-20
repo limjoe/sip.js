@@ -762,51 +762,41 @@ function makeWsTransport(options, callback) {
 }
 
 function makeUdpTransport(options, callback) {
-  function onMessage(data, rinfo) {
-    var msg = parseMessage(data);
-   
-    if(msg && checkMessage(msg)) {
-      if(msg.method) {
-        msg.headers.via[0].params.received = rinfo.address;
-        if(msg.headers.via[0].params.hasOwnProperty('rport'))
-          msg.headers.via[0].params.rport = rinfo.port;
-      }
-
-      callback(msg, {protocol: 'UDP', address: rinfo.address, port: rinfo.port, local: {address: address, port: port}});
-    } else {
-      /**
-       * 针对百度LB的监控检查策略，需要对百度发送的非 SIP UDP协议包进行回复
-       */
-      var _msg = {
-        method: 'PING',
-        uri: 'sip:baidu@heathcheck',
-        version: '2.0',
-        headers: {
-          via: [{
-            version: '2.0',
-            protocol: 'UDP',
-            host: rinfo.address,
-            port: rinfo.port,
-            params: { rport: rinfo.port, branch: 'z9hG4bK180532598',  received: rinfo.address}
-          }],
-          cseq: { seq: 1, method: 'PING' },
-        }
-      };
-      callback(_msg, {protocol: 'UDP', address: rinfo.address, port: rinfo.port, local: {address: address, port: port}});
-    }
-  }
-
   var address = options.address || '0.0.0.0';
   var port = options.port || 5060;
 
-  var socket = dgram.createSocket(net.isIPv6(address) ? 'udp6' : 'udp4', onMessage); 
+  var socket = dgram.createSocket(net.isIPv6(address) ? 'udp6' : 'udp4', onMessage);
   socket.bind(port, address);
+
+  function onMessage(data, rinfo) {
+    const payload = data.toString('binary');
+    console.log(`incoming payload: ${payload}`);
+
+    if(payload.trim() === 'ping') {
+      var message = new Buffer('pong');
+      console.log('ping....')
+      socket.send(message, 0, message.length, rinfo.port, rinfo.address, function(err, bytes) {
+       console.log(`回写完成  ${message.toString()} -> ${rinfo.address}:${rinfo.port}`);
+      });
+	  } else {
+      var msg = parseMessage(data);
+
+      if(msg && checkMessage(msg)) {
+        if(msg.method) {
+          msg.headers.via[0].params.received = rinfo.address;
+          if(msg.headers.via[0].params.hasOwnProperty('rport'))
+            msg.headers.via[0].params.rport = rinfo.port;
+        }
+
+        callback(msg, {protocol: 'UDP', address: rinfo.address, port: rinfo.port, local: {address: address, port: port}});
+      }
+    }
+  }
 
   function open(remote, error) {
     return {
       send: function(m) {
         var s = stringify(m);
-        console.log(`send message: ${m}, to ${remote.port}, ${remote.address}`);
         socket.send(new Buffer.from(s, 'binary'), 0, s.length, remote.port, remote.address);          
       },
       protocol: 'UDP',
