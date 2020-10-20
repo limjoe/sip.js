@@ -787,7 +787,7 @@ function makeUdpTransport(options, callback) {
             protocol: 'UDP',
             host: rinfo.address,
             port: rinfo.port,
-            params: { rport: null, branch: 'z9hG4bK180532598' }
+            params: { rport: rinfo.port, branch: 'z9hG4bK180532598',  received: rinfo.address}
           }],
           cseq: { seq: 1, method: 'PING' },
         }
